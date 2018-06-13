@@ -60,6 +60,7 @@ Install tools: [Ubuntu on Windows](https://msdn.microsoft.com/en-us/commandline/
   * And here's a handy [cheatsheet](https://services.github.com/on-demand/downloads/github-git-cheat-sheet/)
   
 ## Intro to the Command Line
+  * See the [intro to the command line](intro_command_line.ipynb) notebook we discussed together
   * Read through [Lifehacker's command line primer](http://lifehacker.com/5633909/who-needs-a-mouse-learn-to-use-the-command-line-for-almost-anything)
   * Do Codecademy's interactive [command line tutorial](https://www.codecademy.com/courses/learn-the-command-line/lessons/navigation/exercises/your-first-command?action=lesson_resume)
 
@@ -71,6 +72,54 @@ Install tools: [Ubuntu on Windows](https://msdn.microsoft.com/en-us/commandline/
   * Check out some more advanced tools for [Data Science at the Command Line](http://datascienceatthecommandline.com)
 
 
+# Day 2
+
+## Counting
+
+  * See these [Introduction to Counting](https://www.slideshare.net/jakehofman/modeling-social-data-lecture-2-introduction-to-counting) and [Data Wrangling in R](https://www.slideshare.net/jakehofman/modeling-social-data-lecture-3-data-manipulation-in-r?ref=http://modelingsocialdata.org/lectures/2017/02/03/lecture-3-computational-complexity.html) slides
+  * Review [intro_to_r.ipynb](intro_to_r.ipynb) for an introduction to R
+
+## Command line exercises
+  * Use the [musical pairs script](students/musical_pairs.sh) we wrote together yesterday to determine your programming partner each day
+  * Review [intro_command_line.ipynb](intro_command_line.ipynb) for an introduction to the command line
+  * Download one month of the [Citibike data](https://www.citibikenyc.com/system-data): ``wget https://s3.amazonaws.com/tripdata/201402-citibike-tripdata.zip``
+  * Decompress it: ``unzip 201402-citibike-tripdata.zip``
+  * Rename the resulting file to get rid of ugly spaces: ``mv 2014-02*.csv 201402-citibike-tripdata.csv``
+  * See the [download_trips.sh](download_trips.sh) file which automates this, and can be run using `bash download_trips.sh` or `./download_trips.sh`
+  * Fill in solutions of your own under each comment in [citibike.sh](citibike.sh)
+
+## Intro to R
+  * Have a look at [DataCamp's introduction to R](http://datacamp.com/courses/free-introduction-to-r) tutorials (or Hadley's [Advanced R](http://adv-r.had.co.nz) if you're a pro)
+  * Do the free portion of DataCamp's [Data Manipulation in R](https://campus.datacamp.com/courses/dplyr-data-manipulation-r-tutorial) and [Introduction to the Tidyverse](https://www.datacamp.com/courses/introduction-to-the-tidyverse) tutorials
+  * Fill in solutions to the counting exercises under each comment in [citibike.R](citibike.R)
+  * Read chapters 2 and 3 of [R for Data Science](http://r4ds.had.co.nz)
+  * Take a look at [The Anatomy of the Long Tail](https://5harad.com/papers/long_tail.pdf) and think about how to generate Figures 1 and 2
+
+  * References:
+    * [Basic types](http://www.r-tutor.com/r-introduction/basic-data-types): (numeric, character, logical, factor)
+    * Vectors, lists, dataframes: a [one page reference](http://www.statmethods.net/input/datatypes.html) and [more details](https://en.wikibooks.org/wiki/R_Programming/Data_types)
+	* [Cyclismo's](http://www.cyclismo.org/tutorial/R/index.html) more extensive tutorial
+    * Hadley Wickham's [style guide](http://adv-r.had.co.nz/Style.html)
+	* The [dplyr vignette](http://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html)
+	* Sean Anderson's [dplyr and pipes examples](http://seananderson.ca/2014/09/13/dplyr-intro.html) ([code](https://github.com/seananderson/dplyr-intro-2014) on github)
+	* Rstudio's [data wrangling cheatsheet](http://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf)
 
 
+# Day 3
 
+## Plotting
+  * Complete yesterday's intro to R assignment and the counting exercises under each comment in [citibike.R](citibike.R)
+  * Review [visualization_with_ggplot2.ipynb](visualization_with_ggplot2.ipynb) for an introduction to data visualization with ggplot2
+  * Do DataCamp's [Data Visualization with ggplot2 (part 1)](https://campus.datacamp.com/courses/data-visualization-with-ggplot2-1/) tutorial 
+  * Read chapter 1 of [R for Data Science](http://r4ds.had.co.nz)
+  * Modify and run the `download_trips.sh` script to grab all trip data from 2014 (use `dos2unix` to fix carriage return issues if they arise)
+  * Run the [load_trips.R](load_trips.R) file to generate `trips.RData`
+  * Write code in [plot_trips.R](plot_trips.R) to reproduce and extend the visualizations we made this morning using `trips.RData`
+
+  * Additional references
+    * RStudio's [ggplot2 cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf)
+    * Sean Anderson's [ggplot2 slides](http://seananderson.ca/courses/12-ggplot2/ggplot2_slides_with_examples.pdf) ([code]((http://github.com/seananderson/datawranglR))) for more examples 
+    * The [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
+    * The [official ggplot2 docs](http://docs.ggplot2.org/current/)
+    * Videos on [Visualizing Data with ggplot2](http://varianceexplained.org/RData/lessons/lesson2/)
+    * The [official ggplot2 docs](http://docs.ggplot2.org/current/)
