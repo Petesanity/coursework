@@ -36,7 +36,7 @@ head(ratings) %>% kable()
 ```{r dist-ratings}
 # plot the distribution of rating values (slide 21)
 #
-ggplot(ratings) + geom_histogram(aes(x = rating)) + scale_y_continuous(label = comma) 
+ggplot(ratings) + geom_histogram(aes(x = rating), binwidth = 0.2) + scale_y_continuous(label = comma) 
 
 ```
 
@@ -68,11 +68,11 @@ ratings %>% group_by(movie_id) %>% summarize(mean_rating = mean(rating)) %>%
 # hint: use dplyr's rank and arrange functions, and the base R sum and cumsum functions
 # store the result in a new data frame so you can use it in creating figure 2 from the paper below
 
-movie_rank <- ratings %>% group_by(movie_id) %>% summarize(movierank = n()) %>% arrange(desc(movierank)) %>% mutate(cdf = cumsum(movierank)/sum(movierank))
+movie_rank <- ratings %>% group_by(movie_id) %>% summarize(movierank = n()) %>% arrange(desc(movierank)) %>% mutate(cdf = cumsum(movierank)/nrow(ratings))
 
 #plot the CDF of movie popularity
-ratings %>% group_by(movie_id) %>% summarize(movierank = n()) %>% arrange((movierank)) %>% mutate(cdf = cumsum(movierank)/sum(movierank)) %>%
-ggplot() + geom_point( aes(x = movierank, y= cdf))
+
+ratings %>% group_by(movie_id) %>% summarize(movierank = n()) %>% arrange(desc(movierank)) %>%  mutate(cdf = cumsum(movierank), rank = rank(desc(movierank))) %>% ggplot( aes(x = rank, y= cdf)) + geom_point()
 
 
  ```
@@ -90,7 +90,7 @@ ratings %>% group_by(user_id) %>% summarize(mean_ratings = mean(rating), num_rat
 ```{r dist-user-activity}
 # plot distribution of user activity (= number of ratings the user made)
 # hint: try a log scale here
-ratings %>% group_by(user_id) %>% summarize(num_ratings = n()) %>% ggplot(aes(x = user_id, y = num_ratings)) + geom_point() + scale_x_log10(label = comma)
+ratings %>% group_by(user_id) %>% summarize(num_ratings = n()) %>% ggplot(aes(x = num_ratings)) + geom_histogram()+ scale_x_log10(label = comma)
 
 
 ```
