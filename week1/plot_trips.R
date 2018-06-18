@@ -30,14 +30,11 @@ ggplot(trips) + geom_boxplot(aes(x = usertype, y= tripduration))
 
 # plot the total number of trips over each day
 
-<<<<<<< HEAD
 trips %>% group_by(ymd ) %>% summarize(count = n()) %>%
   ggplot(aes(x = ymd, y= count)) + geom_point()
 
-# plot the total number of trips (on the y axis) by age (on the x axis) and age (indicated with color)
-=======
 # plot the total number of trips (on the y axis) by age (on the x axis) and gender (indicated with color)
->>>>>>> a6ef8d2ffa43bd55c395c04f3cf98c7b09cb457d
+
 
 trips %>% mutate(age = 2014-birth_year) %>% group_by(gender,age) %>% summarize(count = n()) %>%
    ggplot(aes(x = age, y=count, color = gender)) + geom_point(na.rm = TRUE) 

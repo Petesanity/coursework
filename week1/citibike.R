@@ -26,24 +26,26 @@ trips <- mutate(trips, gender = factor(gender, levels=c(0,1,2), labels = c("Unkn
 # count the number of trips (= rows in the data frame)
 nrow(trips)
 
-
 # find the earliest and latest birth years (see help for max and min to deal with NAs)
 max(trips$birth_year,na.rm = TRUE)
-
-# use filter and grepl to find all trips that either start or end on broadway
 min(as.numeric(trips$birth_year),na.rm = TRUE)
 
-
-# do the same, but find all trips that both start and end on broadway
-#str_detect(trips, "Broadway") %>% filter(TRUE)
+# use filter and grepl to find all trips that either start or end on broadway
+#trips[grepl("Broadway", trips$start_station_name) | grepl("Broadway", trips$end_station_name), ] %>% View
 trips %>% 
   filter(grepl("Broadway" , start_station_name) 
          | grepl("Broadway" , end_station_name)) %>% View()
 
+# do the same, but find all trips that both start and end on broadway
+#str_detect(trips, "Broadway") %>% filter(TRUE)
+trips[grepl("Broadway", trips$start_station_name) & 
+        grepl("Broadway", trips$end_station_name), ] %>% View
+
+
 # find all unique station names
 unique(trips [,c("start_station_name")])
 unique(trips [,c("end_station_name")])
-#union(trips$start_station_name, trips$end_station_name)
+union(trips$start_station_name, trips$end_station_name)
 
 # count the number of trips by gender
 trips %>% group_by(gender) %>%
@@ -85,5 +87,5 @@ trips%>%
 # what time(s) of day tend to be peak hour(s)?
 mutate(trips, ymd = as.Date(trips$starttime), hour = hour(starttime)) %>%
   group_by(ymd, hour) %>% summarise(n = n()) %>% group_by(hour) %>%
-  summarise(avg = mean(n)) %>% 
+  summarize(avg = mean(n)) %>% 
   ggplot() + geom_line(aes(x=hour,y=avg))
