@@ -52,7 +52,7 @@ ratings %>% group_by(movie_id) %>% summarize(mean(rating), num_rating = n())
 # plot distribution of movie popularity (= number of ratings the movie received)
 # hint: try scale_x_log10() for a logarithmic x axis
 ratings %>% group_by(movie_id) %>% summarize(num_rating = n())%>%
-  ggplot(aes(x = movie_id, y = num_rating)) + geom_point() + scale_x_log10(label = comma)
+  ggplot(aes(x = num_rating)) + geom_histogram() + scale_x_log10(label = comma)
 
 ```
 
