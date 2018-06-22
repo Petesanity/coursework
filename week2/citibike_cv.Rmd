@@ -1,0 +1,99 @@
+
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+
+setwd("C:/Users/Peter Farquharson/Documents/coursework/week1")
+load("trips.RData")
+#1)	Using the bikeshare data, select which order of polynomial 1:10 best uses temperature to predict total bike ridership.
+#a.	First use OLS and use the cross-validation code from class.
+#b.	Now try with LASSO to determine which model has the lowest cross validated MSE.
+#c.	Does adding additional features into the model change the optimal order of polynomial to include?
+
+```
+
+
+
+```{r cars}
+set.seed(24)
+tripData <- inner_join(trips, weather) #combining trip and weather
+
+tripData_summ <- tripData%>% group_by(ymd, tmin) %>% summarize(num_trips = n()) %>% ungroup() #grouping my data by day
+
+train <- sample_n(tripData_summ, nrow(tripData_summ) *.8) #to get 80% of the sample data
+test <- anti_join(tripData_summ, train)  # get the remaining 20%
+
+#fit a model using lm
+Temperature_regression <-lm(formula = num_trips~ tmin , train) 
+#predictions
+test$predictions <- predict(Temperature_regression, newdata = test) # Test predictions
+train$predictions<- predict(Temperature_regression, newdata = train) #Train predictions
+
+#plotting the predicted and actual values based on num_trips and predictions
+ggplot(test) + geom_point(aes(x = tmin, y = num_trips, color = "red")) + geom_point(aes(x = tmin, y = predictions, color = "blue")) 
+
+#R-squared
+Rsquared <- cor(test$predictions, test$num_trips)^2
+
+#RMSE- Root mean squared error
+RMSE<- sqrt(mean((test$predictions - test$num_trips)^2))
+
+#Now do everything quadratically
+Quadratic_model <- lm(formula = num_trips ~ poly(tmin,2), train)
+
+#Quadratic predicts
+test$predict <- predict(Quadratic_model, newdata = test)
+train$prediction<- predict(Quadratic_model, newdata = train)
+ 
+#plot quadratic
+ggplot(test) + geom_point(aes(x=tmin, y = num_trips, color = "blue"))+ 
+  geom_point(aes(x =tmin, y = predictions, color = "red"))
+
+#The model more or less didn't change at first however the quadratic model seems to stretch outwards past the graph and into a parabola
+
+Train_cor <- rep(0,10)
+Test_cor<- rep(0,10)
+for(i in 1:10){
+  
+  Model_2 <- lm(formula = num_trips~ poly(tmin,i), train)
+  
+  train$predict <-predict(Model_2, data = train)
+  test$predict<- predict(Model_2, newdata = test)
+  
+
+  Train_cor[i] <- cor(train$predict,train$num_trips)^2
+  Test_cor[i] <- cor(test$predict, test$num_trips)^2
+
+
+
+}
+
+df <- tibble(number = c(1:10), train1 = Train_cor, test1 = Test_cor)
+
+ggplot(df) + geom_point(aes(x = number, y= train1)) + geom_point(aes(x = number, y = test1))
+#K = 5 has the best performance
+```
+
+
+```{r pressure, echo=FALSE}
+fifth_model <- lm(formula = num_trips ~ poly(tmin,5), train)
+
+#fifth predicts
+test$predicts <- predict(fifth_model, newdata = test)
+train$predictions <- predict(fifth_model, newdata = train)
+ 
+#plot fifth
+ggplot(test) + geom_point(aes(x=tmin, y = num_trips, color = "blue")) + 
+  geom_point(aes(x =tmin, y = predicts, color = "red"))
+
+```
+
+```{r }
+
+
+```
+
+
+
