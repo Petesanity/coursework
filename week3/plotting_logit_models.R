@@ -101,4 +101,3 @@ loan <- loan %>%
   mutate(income_binned = cut(income, quantiles),
          income_binned = ifelse(is.na(income_binned), 'missing', income_binned))
 
-# try models with these, and try visualizing them
