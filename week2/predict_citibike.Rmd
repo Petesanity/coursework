@@ -21,6 +21,9 @@ set.seed(12)
 
 tripData_summary <- trips %>% group_by(ymd) %>% summarize(num_trips = n())%>% left_join( weather) %>% mutate(day_of_week = weekdays(ymd)) %>% filter(!is.na(tmin)) 
 
+```
+
+```{r}
 
 #Splitting the sample in 80% for training
 train_set <- sample_n(tripData_summary, nrow(tripData_summary) *.8)
@@ -28,13 +31,12 @@ test_set <- anti_join(tripData_summary, train_set)
 
 #modeling the regression
 Temperature_regression <-lm(formula = num_trips ~ tmax + prcp*tmin + day_of_week +  snwd , train_set)
-#NOTE: #Explore adding I(snowd>2) in model
-
 summary(Temperature_regression)
 
 #predictions for train subset
 train_set$predictions <- predict(Temperature_regression, newdata = train_set)
- #predictions for test subset
+
+#predictions for test subset
 test_set$predictions <- predict(Temperature_regression, newdata = test_set)
 
 #calculating R^2
@@ -50,6 +52,6 @@ ggplot(test_set) + geom_line(aes(x = ymd, y = predictions, color = "red")) + geo
 
 ggplot(test_set) +  geom_point(aes(x = predictions, y = num_trips)) 
 
-save(Temperature_regression, file= "Temp_regress.RData")
+
 
 ```

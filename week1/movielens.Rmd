@@ -35,6 +35,9 @@ head(ratings) %>% kable()
 
 ```{r dist-ratings}
 # plot the distribution of rating values (slide 21)
+#
+ggplot(ratings) + geom_histogram(aes(x = rating), binwidth = 0.2) + scale_y_continuous(label = comma) 
+
 ```
 
 ## Per-movie stats
@@ -42,16 +45,22 @@ head(ratings) %>% kable()
 ```{r aggregate-by-movie}
 # aggregate ratings by movie, computing mean and number of ratings
 # hint: use the n() function for easy counting within a group
+ratings %>% group_by(movie_id) %>% summarize(mean(rating), num_rating = n())  
 ```
 
 ```{r dist-movie-popularity}
 # plot distribution of movie popularity (= number of ratings the movie received)
 # hint: try scale_x_log10() for a logarithmic x axis
+ratings %>% group_by(movie_id) %>% summarize(num_rating = n())%>%
+  ggplot(aes(x = num_rating)) + geom_histogram() + scale_x_log10(label = comma)
+
 ```
 
 ```{r dist-mean-ratings-by-movie}
 # plot distribution of mean ratings by movie (slide 23)
 # hint: try geom_histogram and geom_density
+ratings %>% group_by(movie_id) %>% summarize(mean_rating = mean(rating)) %>%
+  ggplot(aes(x = mean_rating)) +  geom_density(fill = "black") 
 ```
 
 ```{r cdf-movie-pop}
@@ -59,19 +68,31 @@ head(ratings) %>% kable()
 # hint: use dplyr's rank and arrange functions, and the base R sum and cumsum functions
 # store the result in a new data frame so you can use it in creating figure 2 from the paper below
 
-# plot the CDF of movie popularity
-```
+movie_rank <- ratings %>% group_by(movie_id) %>% summarize(movierank = n()) %>% arrange(desc(movierank)) %>% mutate(cdf = cumsum(movierank)/nrow(ratings))
+
+#plot the CDF of movie popularity
+
+ratings %>% group_by(movie_id) %>% summarize(movierank = n()) %>% arrange(desc(movierank)) %>%  mutate(cdf = cumsum(movierank), rank = rank(desc(movierank))) %>% ggplot( aes(x = rank, y= cdf)) + geom_point()
+
+
+ ```
+
 
 
 # Per-user stats
 
 ```{r aggregate-by-user}
 # aggregate ratings by user, computing mean and number of ratings
+ratings %>% group_by(user_id) %>% summarize(mean_ratings = mean(rating), num_ratings = n())
+
 ```
 
 ```{r dist-user-activity}
 # plot distribution of user activity (= number of ratings the user made)
 # hint: try a log scale here
+ratings %>% group_by(user_id) %>% summarize(num_ratings = n()) %>% ggplot(aes(x = num_ratings)) + geom_histogram()+ scale_x_log10(label = comma)
+
+
 ```
 
 # Anatomy of the long tail
@@ -89,4 +110,19 @@ head(ratings) %>% kable()
 # paper, produce one curve for the 100% user satisfaction level and
 # another for 90%---do not, however, bother implementing the null
 # model (shown in the dashed lines).
-```
+
+movie_pop <- group_by(ratings,movie_id) %>% summarize(count = n())%>% arrange(desc(count))%>% mutate(rank= row_number())
+
+c_100 <- inner_join(ratings, movie_pop) %>% group_by(user_id) %>% summarize(cutoff = max(rank, na.rm = FALSE))%>%  group_by(cutoff) %>% summarize(count = n()) %>%
+  arrange(cutoff) %>% mutate(frac_user = cumsum(count)/sum(count)) 
+
+c_90 <- inner_join(ratings, movie_pop) %>% group_by(user_id) %>% summarize(cutoff2 = quantile(rank, 0.9))%>%  group_by(cutoff2) %>% summarize(count = n()) %>%
+  arrange(cutoff2) %>% mutate(frac_user = cumsum(count)/sum(count))
+
+
+ ggplot() + geom_line(data = c_100, aes(x = cutoff, y = frac_user, color = "Red")) + geom_line(data = c_90, aes(x = cutoff2, y =frac_user, color = "Blue" )) 
+
+  
+# inner_join(ratings, movie_pop) %>% group_by(user_id) %>% summarize(cutoff = max(rank, #na.rm = FALSE)) %>% group_by(cutoff) %>% summarize(count = n()) %>%
+#+     arrange(cutoff) %>% mutate(cum_sum = cumsum(count)/sum(count)) %>% View()  
+
