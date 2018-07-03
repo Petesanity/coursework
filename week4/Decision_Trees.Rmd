@@ -1,0 +1,147 @@
+---
+title: "Decision_Trees"
+output: html_document
+---
+
+```{r, Decision Trees}
+
+#install.packages('tree')
+#install.packages('ISLR')
+#install.packages('C50')
+
+
+library(tree)
+library (ISLR) 
+library(dplyr)
+library(C50)
+attach(Carseats ) 
+
+#High=ifelse(Sales <=8,"No","Yes")
+#Carseats =data.frame(Carseats ,High)
+#tree.carseats = tree(High~.-Sales,Carseats) #This means use everything except sales
+#summary(tree.carseats)
+#plot(tree.carseats)
+#text(tree.carseats, pretty = 0)
+ #set.seed(2)
+ #train=sample (1: nrow(Carseats ), 200)  Carseats.test=Carseats [-train,]  High.test=High[-train]
+#tree.carseats=tree(High???.-Sales,Carseats,subset=train) 
+#tree.pred=predict(tree.carseats ,Carseats.test,type="class")
+#table(tree.pred,High.test) 
+
+ 
+#set.seed(3)
+#cv.carseats =cv.tree(tree.carseats ,FUN=prune.misclass ) 
+ #names(cv.carseats )
+
+
+
+```
+
+
+```{r, Lab 12}
+
+titan_data <- read.csv("titanic_train.csv")
+
+#2 What percentage of passengers in our data set survived?
+summary(titan_data)
+#38% of passengers survived
+
+
+```
+
+```{r, }
+
+#3 Which variables do you think may be good predictors of the survival on the Titanic? Document your exploration. (Hint: You may want to turn the Survived variable into a factor using the factor() function.)
+
+survive_fac <-factor(titan_data$Survived)
+Var_prediction <- glm(as.factor(Survived)~ Sex + Age, titan_data, family = "binomial")
+
+summary(Var_prediction)
+
+#Sex, age and Passenger class I think would be good predictors of survival on the Titanic because they are the most significant variables
+
+
+
+
+```
+
+```{r,4}
+
+#4 Estimate a decision tree predicting survival using age and sex as predictors. Describe your results.
+D_tree <- tree(factor(Survived)~Age + Sex, titan_data)
+summary(D_tree)
+plot(D_tree)
+text(D_tree, pretty = 0)
+D_tree
+
+
+```
+
+```{r, 5}
+
+#5 Estimate a decision tree using age, sex and passenger class. Describe your results.
+
+D_tree <- tree(factor(Survived)~Age + Sex, titan_data)
+summary(D_tree)
+plot(D_tree)
+text(D_tree, pretty = 0)
+D_tree
+
+
+
+
+
+```
+
+```{r,}
+
+#6 Estimate your own decision tree with your own set of predictors (you are, of course, free to include the predictors we used above). How accurate is your model on the training data? How does it compare to the models above?
+
+
+D_tree <- tree(factor(Survived)~Age + Sex + as.factor(Pclass) + SibSp + Parch , titan_data)
+summary(D_tree)
+plot(D_tree)
+text(D_tree, pretty = 0)
+#Residual mean deviance went down compared to the other models above
+D_tree
+
+
+```
+
+```{r , 7}
+
+#Download test data from this link. This is the test data from Kaggle, we actually don't know the true fate of the passengers in this data set. Use this data to make predictions for these passengers.
+titan_test <- read.csv("titanic_test.csv")
+#test<- merge(titan_data, titan_test, by = c("PassengerID" ,"Survived"))
+#titan_test$Survived <-  Sur 
+#Sur = titan_data$Survived
+#test <- (cbind(titan_test, Survived = titan_data$Survived))
+#bind_cols(titan_test, titan_data['Survived'])
+
+pred <- predict(D_tree, titan_test, type="class")
+pred
+summary(pred)
+
+
+```
+
+```{r , 8}
+
+#8 Even though we don't know the fate of the passengers in the test data set, Kaggle does. In fact, Kaggle will evaluate our predictions and compare the accuracy of our predictions to those of other participants in the competition. All we have to do is register with Kaggle and create a .csv file that contains two columns: PassengerId and Survived. Where Survived contains our predictions 0 for did not survive, and 1 for survived. We can do this by first creating a data frame (let's call it submit) using function data.frame() with the two columns. It should look something like this:submit <- data.frame(PassengerId = test$PassengerId, Survived = prediction) Second, we need to write a .csv file using function write.csv() This function takes a data frame to be written as its first argument, name of .csv file to be created as the second argument. We also need to use option row.names = FALSE to prevent the function from adding an additional column with row numbers. It should look something like this: write.csv(submit, "C:/business analytics/labs/lab 12/Submission.csv", row.names = FALSE) Submit your predictions and report on your accuracy and rank compared to other participants. Take a screenshot and attach to your lab.
+
+submit <- data.frame(PassengerId = titan_test$PassengerId, Survived = pred)
+
+submit
+
+write.csv(submit, "TitanicSubmission.csv", row.names = FALSE, quote = FALSE)
+
+
+
+
+
+
+
+
+```
+
+![Caption](Submission.JPG)
