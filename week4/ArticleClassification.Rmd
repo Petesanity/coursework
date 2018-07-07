@@ -1,0 +1,153 @@
+---
+title: "ArticleClassification"
+output: html_document
+---
+
+```{r  }
+
+library(tidyverse)
+#install.packages('tm')
+#install.packages('glmnet')
+library(tm)
+library(Matrix)
+library(glmnet)
+library(ROCR)
+library(dplyr)
+library(caret)
+library(broom)
+
+## read in the business and world articles from files
+# combine them both into one data frame called articles
+setwd("C:/Users/Peter Farquharson/Documents/coursework/week4")
+business <- read_tsv('business.tsv', quote = '')
+world <- read_tsv('world.tsv', quote = '')
+articles <- rbind(business, world)
+
+
+```
+
+```{r }
+
+
+
+# create a corpus from the article snippets
+
+# using the Corpus and VectorSource functions
+
+corpus <- Corpus(VectorSource(articles$Snippet))
+
+
+
+# create a DocumentTermMatrix from the snippet Corpus
+
+# remove stopwords, punctuation, and numbers
+
+dtm <- DocumentTermMatrix(corpus, list(weighting=weightBin,
+
+                                       stopwords=T,
+
+                                       removePunctuation=T,
+
+                                       removeNumbers=T))
+
+
+
+# convert the DocumentTermMatrix to a sparseMatrix
+
+X <- sparseMatrix(i=dtm$i, j=dtm$j, x=dtm$v, dims=c(dtm$nrow, dtm$ncol), dimnames=dtm$dimnames)
+
+
+
+# set a seed for the random number generator so we all agree
+
+set.seed(42)
+
+
+
+########################################
+
+# YOUR SOLUTION BELOW
+
+########################################
+
+
+
+# create a train / test split
+samp <- sample(2000,400)
+test_x<-X[samp,]
+train_x <- X[-samp, ]
+
+train_y <- articles$section[-samp]
+test_y <- articles$section[samp]
+
+#Create an 80% train / 20% test split of the data and use cv.glmnet to find a best-fit logistic regression model to predict section_name from snippet
+# cross-validate logistic regression with cv.glmnet (family="binomial"), measuring auc
+
+log_regress <- cv.glmnet(train_x, train_y, family = "binomial", type.measure = "auc")
+summary(log_regress)
+
+# plot the cross-validation curve
+plot.cv.glmnet(log_regress)
+
+
+# evaluate performance for the best-fit model
+
+pred_train<- predict(log_regress,test_x, type = 'class')
+
+
+
+# note: it's useful to explicitly cast glmnet's predictions
+
+# use as.numeric for probabilities and as.character for labels for this
+
+data_test<- as.data.frame(train_y)
+data_test$probabilities <- as.numeric(predict(log_regress, test_x, type = "response"))
+data_test$label <- as.character(predict(log_regress,test_x, type = "class"))
+
+data_test$probabilities
+data_test$label
+
+
+
+# compute accuracy
+acc <- cbind(accur= factor(pred_train), real = factor(test_y)) %>% data.frame %>% filter(accur == real) %>% nrow
+accuracy_calc <- acc/nrow(test_x)
+accuracy_calc
+
+# look at the confusion matrix
+
+
+confusionMatrix(factor(pred_train),factor(test_y))
+
+
+# plot an ROC curve and calculate the AUC
+
+# (see last week's notebook for this)
+
+
+pred<- predict(log_regress, test_x, type = 'response')
+pred_calc <- prediction(pred,test_y)
+perform <- performance(pred_calc, measure = 'tpr', x.measure = 'fpr')
+plot(perform)
+
+
+
+# show weights on words with top 10 weights for business
+
+# use the coef() function to get the coefficients
+
+# and tidy() to convert them into a tidy data frame
+
+tidy(coef(log_regress)) %>% filter(value<0) %>% arrange(value) %>% head(10)
+
+
+
+# show weights on words with top 10 weights for world
+
+tidy(coef(log_regress))%>% filter(value > 0) %>% arrange(value) %>% head(10)
+
+
+
+```
+
+
