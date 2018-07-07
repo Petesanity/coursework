@@ -37,7 +37,60 @@
       * Your code should take an API key, section name, and number of articles as command line arguments, and write out a tab-delimited file where each article is in a separate row, with ``section_name``, ``web_url``, ``pub_date``, and ``snippet`` as columns (hint: use the [codecs](https://pymotw.com/2/codecs/#working-with-files) package to deal with unicode issues if you run into them)
       * You'll have to loop over pages of API results until you have enough articles, and you'll want to remove any newlines from article snippets to keep each article on one line
       * Use your code to downloaded the 1000 most recent articles from the Business and World sections of the New york Times.
-      
+
+## Article classification
+
+* After you have 1000 articles for each section, use the code in [classify_nyt_articles.R](classify_nyt_articles.R) to read the data into R and fit a logistic regression to prediction which section an article belongs to based on the words in its snippets
+    * The provided code reads in each file and uses tools from the ``tm`` package---specifically ``VectorSource``, ``Corpus``, and ``DocumentTermMatrix``---to parse the article collection into a ``sparseMatrix``, where each row corresponds to one article and each column to one word, and a non-zero entry indicates that an article contains that word (note: this assumes that there's a column named ``snippet`` in your tsv files!)
+    * Create an 80% train / 20% test split of the data and use ``cv.glmnet`` to find a best-fit logistic regression model to predict ``section_name`` from ``snippet``
+    * Plot of the cross-validation curve from ``cv.glmnet``
+    * Quote the accuracy and AUC on the test data and use the ``ROCR`` package to provide a plot of the ROC curve for the test data
+    * Look at the most informative words for each section by examining the words with the top 10 largest and smallest weights from the fitted model
+
+# Day 3
+
+Fourth of July!
+
+# Day 4
+  * Finish up building the NYTimes article classifier
+
+## Maps
+  * See this [notebook](https://rpubs.com/jhofman/nycmaps) on maps, shapefiles, and spatial joins
+  * Use the 2014 Citibike data to make a few plots:
+    * Create a data frame that has the unique name, latitude, and longitude for each Citibike station that was present in the system in July 2014
+    * Make a map showing the location of each Citibike station using ggmap
+    * Do the same using leaflet, adding a popup that shows the name of the station when it's clicked on
+    * Then do a spatial join to combine this data frame with the Pediacities NYC neighborhood shapefile data
+    * Make a map showing the number of unique Citibike stations in each neighborhood
+    * First do this using ggmap where the fill color encodes the number of stations
+    * Then do the same using leaflet, adding a popup that shows the number of stations in a neighborhood when its shape is clicked on
+	* Now create a new data frame that has the total number of trips that depart from each station at each hour of the day on July 14th
+	* Do a spatial join to combine this data frame with the Pediacities NYC neighborhood shapefile data
+	* Make a ggmap plot showing the number of trips that leave from each neighborhood at 9am, 1pm, 5pm, and 10pm, faceted by hour, where each facet contains a map where the fill color encodes the number of departing trips in each neighborhood
+  * References:
+    * [Leaflet for R](https://rstudio.github.io/leaflet/)
+    * Datacamps [intro to leaflet in R](https://www.datacamp.com/courses/interactive-maps-with-leaflet-in-r)
+    * [Previews](https://leaflet-extras.github.io/leaflet-providers/preview/) of different leaflet tile providers
+
+# Day 5
+
+  * Complete yesterday's maps
+  * Create a function that computes historical trip times between any two stations:
+    * Take the trips dataframe and two station names as inputs
+    * Return a 168-by-6 dataframe with summary statistics of trip times for each hour of the week (e.g., Monday 9am, Monday 10am, etc.), where the summary statistics include:
+      * Average number of trips in that hour
+      * Average and median trip times for that hour
+      * Standard deviation in trip time for that hour
+      * Upper and lower quartiles of trip time for that hour
+    * Use this function on trips between Penn Station and Grand Central (you can use the most popular station at each location)
+    * Make a plot of the results, where each facet is a day of the week, the x axis shows hour of the day, and the y axis shows average trip time, with transparent ribbons to show the standard deviation in trip time around the mean
+
+## Shiny apps
+  * Do RStudio's [written Shiny tutorial](https://shiny.rstudio.com/tutorial/) to get familiar with building shiny apps
+  * References:
+    * Datacamp's [Building Web Applications in R with Shiny](https://www.datacamp.com/courses/building-web-applications-in-r-with-shiny)
+    * Datacamp's [Case studies](https://www.datacamp.com/courses/building-web-applications-in-r-with-shiny-case-studies) for Shiny apps in R
+  
 <!--
 
   * We had a guest lecture from [Hal Daume]() on natural language processing
@@ -46,4 +99,3 @@
     * [A statistical approach to machine translation](http://dl.acm.org/citation.cfm?id=92860)
     * See these interactive demos on [k-means](https://www.naftaliharris.com/blog/visualizing-k-means-clustering/) and [mixture models](http://davpinto.com/ml-simulations/#gaussian-mixture-density)
 -->
-
