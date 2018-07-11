@@ -1,0 +1,131 @@
+---
+title: "CitibikeMapPlots"
+output: html_document
+---
+
+```{r   }
+library(tigris)
+library(dplyr)
+library(leaflet)
+library(sp)
+library(ggmap)
+library(maptools)
+library(broom)
+library(httr)
+library(rgdal)
+library(tidyr)
+library(tidyverse)
+library(httr)
+library(lubridate)
+
+data <- read.csv("201407-citibike-tripdata.csv")
+data <- mutate(data, ymd = as.Date(starttime))
+
+
+##1.Create a data frame that has the unique name, latitude, and longitude for each Citibike station that was present in the system in July 2014
+
+#df <- data.frame(data$start.station.name, data$start.station.latitude, data$start.station.longitude)
+#df2 <- data.frame(data$end.station.name , data$end.station.latitude, data$end.station.longitude)
+
+start_stations <- data %>% group_by(name = start.station.name, latitude = start.station.latitude, longitude = start.station.longitude) %>% summarize()
+
+end_stations <- data %>%  group_by(name = end.station.name, latitude = end.station.latitude, longitude = end.station.longitude) %>% summarize()
+
+all_stations <- merge(start_stations, end_stations)
+
+
+
+
+```
+
+```{r  }
+#Make a map showing the location of each Citibike station using ggmap
+#Do the same using leaflet, adding a popup that shows the name of the station when it's clicked on
+citi_map <- get_map(location = c(lon = -74.04, lat = 40.72), maptype = "terrain",  zoom = 12) 
+
+ggmap(citi_map)+
+geom_point(data = all_stations, aes(x = longitude, y = latitude))
+
+
+leaflet() %>% addTiles() %>% setView(-74.045448, 40.726393, zoom = 12) %>% addProviderTiles("CartoDB.Positron") %>% addMarkers(~longitude, ~latitude , popup = ~name, data = all_stations)
+
+
+
+
+```
+
+```{r }
+#Then do a spatial join to combine this data frame with the Pediacities NYC neighborhood shapefile data
+r <- GET('http://data.beta.nyc//dataset/0ff93d2d-90ba-457c-9f7e-39e47bf2ac5f/resource/35dd04fb-81b3-479b-a074-a27a37888ce7/download/d085e2f8d0b54d4590b1e7d1f35594c1pediacitiesnycneighborhoods.geojson')
+
+nyc_neighborhoods <- readOGR(content(r,'text'), 'OGRGeoJSON', verbose = F)
+
+df_spatial <-data.frame(latitude = all_stations$latitude, longitude = all_stations$longitude)
+
+points_spf <- df_spatial
+coordinates(points_spf) <- ~longitude + latitude
+
+proj4string(points_spf) <- proj4string(nyc_neighborhoods)
+matches<- over(points_spf, nyc_neighborhoods)
+df_spatial<- cbind(df_spatial, matches)
+
+
+
+
+
+```
+
+```{r }
+
+#Make a map showing the number of unique Citibike stations in each neighborhood
+#First do this using ggmap where the fill color encodes the number of stations
+
+
+neighbourhood_stations <- df_spatial %>% group_by(neighborhood) %>% summarize(num_stations = n())
+#geojoin to join data frame into spatial data frame
+map <- geo_join(nyc_neighborhoods, neighbourhood_stations, "neighborhood", "neighborhood")
+
+pal <- colorNumeric(palette = "RdBu",
+domain = range(map@data$num_stations, na.rm=T))
+
+citi_visual <- tidy(nyc_neighborhoods, neighborhood = "neighborhood") %>% left_join(., neighbourhood_stations, by = c(id = "neighborhood"))
+
+ggmap(citi_map) + geom_point(data = citi_visual, aes(x = long, y = lat, fill = num_stations))
+
+#Then do the same using leaflet, adding a popup that shows the number of stations in a neighborhood when its shape is clicked on
+points <- df_spatial %>% left_join(neighbourhood_stations)
+
+leaflet(map) %>% addTiles() %>% addPolygons(fillColor = ~pal(num_stations), popup = ~neighborhood) %>% addMarkers(~longitude, ~latitude, popup = ~num_stations, data = points) %>%  addProviderTiles("CartoDB.Positron") %>% setView(-74.045448, 40.726393, zoom = 10)
+
+
+
+
+```
+
+```{r }
+#Now create a new data frame that has the total number of trips that depart from each station at each hour of the day on July 14th
+
+hour_trips <- data %>%filter(ymd == "2014-07-14") %>% mutate(hour = hour(starttime)) %>% group_by(name = start.station.name, hour, latitude = start.station.latitude, longitude= start.station.longitude) %>% summarize(num_trips = n()) %>% data.frame()
+
+#Do a spatial join to combine this data frame with the Pediacities NYC neighborhood shapefile data
+
+hour_trips_spd <- hour_trips
+coordinates(hour_trips_spd) <- ~longitude + latitude
+proj4string(hour_trips_spd) <- proj4string(nyc_neighborhoods)
+matches <- over(hour_trips_spd, nyc_neighborhoods)
+hour_trips <- cbind(hour_trips, matches)
+```
+
+```{r }
+#Make a ggmap plot showing the number of trips that leave from each neighborhood at 9am, 1pm, 5pm, and 10pm, faceted by hour, where each facet contains a map where the fill color encodes the number of departing trips in each neighborhood
+neighborhood_trips <- hour_trips %>%filter(hour%in%c(9,13,17,22)) %>%
+  group_by(neighborhood, hour) %>%   summarize(count = sum(num_trips))
+
+pal2 <- colorNumeric(palette = "RdBu",domain = range(neighborhood_trips$count, na.rm = T))
+
+
+citi_visual2 <- tidy(nyc_neighborhoods) %>% left_join(., neighborhood_trips, by = c(id = "neighborhood"))
+
+ggmap(citi_map) + geom_polygon(data = citi_visual2, aes(x =  long, y = lat, fill = count)) + facet_wrap(~hour)
+
+```
