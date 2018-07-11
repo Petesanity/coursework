@@ -1,0 +1,62 @@
+---
+title: "friday_exercises"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(dplyr)
+library(tidyverse)
+library(lubridate)
+data <- read.csv("201407-citibike-tripdata.csv")
+data <- mutate(data, ymd = as.Date(starttime))
+
+```
+
+```{r }
+
+#Create a function that computes historical trip times between any two stations:
+#Take the trips dataframe and two station names as inputs
+#Return a 168-by-6 dataframe with summary statistics of trip times for each hour of the week (e.g., Monday 9am, Monday 10am, etc.), where the summary statistics include:
+#Average number of trips in that hour
+#Average and median trip times for that hour
+#Standard deviation in trip time for that hour
+#Upper and lower quartiles of trip time for that hour
+
+compute_trip_times <- function(start, end) {
+  
+       trips <- data %>% filter(start == start.station.name,                     end ==     end.station.name) %>% mutate(week = week(starttime),          day = weekdays(ymd),    hour = hour(starttime)) %>%
+       select(week,day,hour,start = start.station.name,                       end =end.station.name, tripduration)
+  
+
+  
+    statistics <- trips %>% group_by(day, hour) %>% 
+      summarise(avg_num_trips= mean(tripduration),
+                median_trip = median(tripduration), sd_trip = 
+                  sd(tripduration), upper_quartile =
+                  quantile(tripduration,     0.75), lower_quartile =
+                  quantile(tripduration, 0.25))
+    
+    #Calculating the average number of trips per hour of day
+    avg_trips <- trips %>% group_by(week, day, hour) %>% summarize(count= n()) %>% summarize(avg_trips= mean(count))
+    
+    stats<- full_join(avg_trips, statistics)
+
+
+   return (statistics)
+}
+
+
+```
+
+```{r }
+#Use this function on trips between Penn Station and Grand Central (you can use the most popular station at each location) "8 Ave & W 31 St" "E 42 St & Vanderbilt Ave"
+
+results <- compute_trip_times("8 Ave & W 31 St","E 42 St & Vanderbilt Ave")
+
+
+#Make a plot of the results, where each facet is a day of the week, the x axis shows hour of the day, and the y axis shows average trip time, with transparent ribbons to show the standard deviation in trip time around the mean
+
+ggplot(results, aes(x = hour, y = avg_num_trips)) + geom_line() + geom_ribbon(aes(ymin = avg_num_trips- sd_trip, ymax = avg_num_trips + sd_trip)) + facet_wrap(~day)
+
+```
